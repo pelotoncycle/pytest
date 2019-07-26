@@ -19,6 +19,9 @@ SEP = "/"
 tracebackcutdir = py.path.local(_pytest.__file__).dirpath()
 
 
+_node_cache = {}
+
+
 def _splitnode(nodeid):
     """Split a nodeid into constituent 'parts'.
 
@@ -37,9 +40,13 @@ def _splitnode(nodeid):
     if nodeid == "":
         # If there is no root node at all, return an empty list so the caller's logic can remain sane
         return []
-    parts = nodeid.split(SEP)
-    # Replace single last element 'test_foo.py::Bar' with multiple elements 'test_foo.py', 'Bar'
-    parts[-1:] = parts[-1].split("::")
+
+    parts = _node_cache.get(nodeid)
+    if not parts:
+        parts = nodeid.split(SEP)
+        # Replace single last element 'test_foo.py::Bar' with multiple elements 'test_foo.py', 'Bar'
+        parts[-1:] = parts[-1].split("::")
+        _node_cache[nodeid] = parts
     return parts
 
 
